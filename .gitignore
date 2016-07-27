@@ -13,7 +13,6 @@ Release/
 *.pyc
 build/
 buildex/
-projects/*
 .fbgen.cfg
 src/libs/curl/curl
 src/libs/openssl/openssl
