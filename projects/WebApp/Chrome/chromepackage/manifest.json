@@ -1,0 +1,9 @@
+{
+  "name": "WebApp",
+  "version": "${FBSTRING_PLUGIN_VERSION}",
+  "description": "Web Application Player",
+
+	"plugins": [
+    { "path": "npWebApp.dll", "public": true }
+  ]
+}
