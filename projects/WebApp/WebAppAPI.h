@@ -45,7 +45,7 @@ public:
     FB_JSAPI_EVENT(notify, 3, (const int, const std::string &, const std::string &));
 
 private:
-	void start(const std::string &url, const std::string &args);
+	void start(const FB::variant &url, const FB::variant &md5, const FB::variant &args);
 	// Read-only property ${PROPERTY.ident}
 	std::string get_version();
 

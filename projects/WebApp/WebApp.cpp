@@ -135,7 +135,7 @@ bool WebApp::onWindowEventHandle(FB::WindowsEvent *evt, FB::PluginWindow *)
 	return false;
 }
 
-void WebApp::onStart(const std::string &url, const std::string &args)
+void WebApp::onStart(const std::string &url, const std::string &md5, const std::string &args)
 {
 	api->fire_notify(0, "", g_dllPath + args);
 }

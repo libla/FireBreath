@@ -56,7 +56,7 @@ public:
     virtual bool onWindowDetached(FB::DetachedEvent *evt, FB::PluginWindow *);
 	virtual bool onWindowEventHandle(FB::WindowsEvent *evt, FB::PluginWindow *);
     /** END EVENTDEF -- DON'T CHANGE THIS LINE **/
-	void onStart(const std::string &url, const std::string &args);
+	void onStart(const std::string &url, const std::string &md5, const std::string &args);
 
 private:
 	FB::PluginWindow *window;

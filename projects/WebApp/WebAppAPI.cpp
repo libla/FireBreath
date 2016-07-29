@@ -42,9 +42,22 @@ WebAppPtr WebAppAPI::getPlugin()
     return plugin;
 }
 
-void WebAppAPI::start(const std::string &url, const std::string &args)
+void WebAppAPI::start(const FB::variant &url, const FB::variant &md5, const FB::variant &args)
 {
-	getPlugin()->onStart(url, args);
+	std::string urlstr = url.cast<std::string>();
+	std::string md5str;
+	std::string argstr;
+	if (args.empty())
+	{
+		if (!md5.empty())
+			argstr = md5.cast<std::string>();
+	}
+	else
+	{
+		md5str = md5.cast<std::string>();
+		argstr = args.cast<std::string>();
+	}
+	getPlugin()->onStart(urlstr, md5str, argstr);
 }
 
 // Read-only property version
