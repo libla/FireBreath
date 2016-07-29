@@ -50,7 +50,11 @@ public:
 
 	FB::Log::LogLevel getLogLevel()
 	{
+#ifndef NDEBUG
+		return FB::Log::LogLevel_Debug;
+#else
 		return FB::Log::LogLevel_Info;
+#endif
 	}
 };
 
