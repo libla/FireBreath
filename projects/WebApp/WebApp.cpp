@@ -135,11 +135,6 @@ bool WebApp::onWindowResized(FB::ResizedEvent *evt, FB::PluginWindow *)
 	return false;
 }
 
-bool WebApp::onWindowEventHandle(FB::WindowsEvent *evt, FB::PluginWindow *)
-{
-	return false;
-}
-
 void WebApp::onStart(const std::string &url, const std::string &md5, const std::string &args)
 {
 	api->fire_notify(0, "start", g_dllPath + "\n" + args);

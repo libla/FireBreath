@@ -47,7 +47,6 @@ public:
         EVENTTYPE_CASE(FB::AttachedEvent, onWindowAttached, FB::PluginWindow)
         EVENTTYPE_CASE(FB::DetachedEvent, onWindowDetached, FB::PluginWindow)
 		EVENTTYPE_CASE(FB::ResizedEvent, onWindowResized, FB::PluginWindow)
-		EVENTTYPE_CASE(FB::WindowsEvent, onWindowEventHandle, FB::PluginWindow)
     END_PLUGIN_EVENT_MAP()
 
     /** BEGIN EVENTDEF -- DON'T CHANGE THIS LINE **/
@@ -57,7 +56,6 @@ public:
     virtual bool onWindowAttached(FB::AttachedEvent *evt, FB::PluginWindow *);
     virtual bool onWindowDetached(FB::DetachedEvent *evt, FB::PluginWindow *);
 	virtual bool onWindowResized(FB::ResizedEvent *evt, FB::PluginWindow *);
-	virtual bool onWindowEventHandle(FB::WindowsEvent *evt, FB::PluginWindow *);
     /** END EVENTDEF -- DON'T CHANGE THIS LINE **/
 	void onStart(const std::string &url, const std::string &md5, const std::string &args);
 
