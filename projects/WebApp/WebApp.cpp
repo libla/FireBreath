@@ -123,11 +123,16 @@ bool WebApp::onWindowAttached(FB::AttachedEvent *evt, FB::PluginWindow *win)
 bool WebApp::onWindowDetached(FB::DetachedEvent *evt, FB::PluginWindow *win)
 {
     // The window is about to be detached; act appropriately
-	if (window != win)
+	if (window == win)
 	{
 		window = NULL;
 	}
     return false;
+}
+
+bool WebApp::onWindowResized(FB::ResizedEvent *evt, FB::PluginWindow *)
+{
+	return false;
 }
 
 bool WebApp::onWindowEventHandle(FB::WindowsEvent *evt, FB::PluginWindow *)
@@ -137,5 +142,5 @@ bool WebApp::onWindowEventHandle(FB::WindowsEvent *evt, FB::PluginWindow *)
 
 void WebApp::onStart(const std::string &url, const std::string &md5, const std::string &args)
 {
-	api->fire_notify(0, "", g_dllPath + args);
+	api->fire_notify(0, "start", g_dllPath + "\n" + args);
 }
