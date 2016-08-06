@@ -68,7 +68,7 @@ public:
 	void onNotify(const std::string &type, const FB::variant &args);
 
 private:
-	int execute(boost::shared_array<unsigned char> &data, size_t len, const std::string &args);
+	int execute(boost::shared_array<unsigned char> &data, size_t len, bool old, const std::string &args);
 
 private:
 	FB::PluginWindow *window;
@@ -97,7 +97,8 @@ private:
 	ResizeFunc resize;
 	MessageFunc message;
 	std::string filename;
-	std::string execargs;
+	std::vector<unsigned char> filemd5;
+	std::string args;
 	unsigned char *buffer;
 	size_t bufflen;
 	size_t buffused;

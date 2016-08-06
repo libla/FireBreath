@@ -1,4 +1,4 @@
-/**********************************************************\
+﻿/**********************************************************\
 
   Auto-generated WebApp.cpp
 
@@ -15,6 +15,7 @@
 #include <BrowserStreamRequest.h>
 #include <PluginWindowWin.h>
 #include <unzip.h>
+#include <md5.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 
@@ -226,6 +227,7 @@ bool WebApp::onStreamEvent(FB::StreamEvent *evt, FB::BrowserStream *)
 		bool result = evt->get<FB::StreamCompletedEvent>()->success;
 		if (result)
 		{
+			// 保存文件
 			if (!filename.empty())
 			{
 				std::string path = "cache\\" + uuid();
@@ -248,29 +250,46 @@ bool WebApp::onStreamEvent(FB::StreamEvent *evt, FB::BrowserStream *)
 					rename(path.c_str(), ("webapp\\" + filename).c_str());
 				} while (false);
 			}
-			boost::shared_array<unsigned char> data(buffer);
-			buffer = NULL;
-			bufflen = 0;
-			switch (execute(data, buffused, execargs))
+
+			do
 			{
-			case Succeed:
-				FBLOG_DEBUG("webapp", "succeed");
-				break;
-			case FormatFail:
-				api->fire_error("'" + evt->stream->getUrl() + "' is not a valid web application");
-				break;
-			case VerifyFail:
-				api->fire_error("'" + evt->stream->getUrl() + "' verify fail");
-				break;
-			case NotSupport:
-				api->fire_error("'" + evt->stream->getUrl() + "' is not support your platform");
-				break;
-			case RuntimeError:
-				api->fire_error("'" + evt->stream->getUrl() + "' failed during startup/running");
-				break;
-			default:
-				api->fire_error("'" + evt->stream->getUrl() + "' get a unknown error");
-			}
+				// 校验文件
+				if (!filemd5.empty())
+				{
+					unsigned char verify[16];
+					Md5Calc(verify, (char *)buffer, buffused);
+					if (memcmp(verify, &(filemd5[0]), 16) != 0)
+					{
+						api->fire_error("'" + evt->stream->getUrl() + "' md5sum fail");
+						break;
+					}
+				}
+
+				// 执行webapp
+				boost::shared_array<unsigned char> data(buffer);
+				buffer = NULL;
+				bufflen = 0;
+				switch (execute(data, buffused, false, args))
+				{
+				case Succeed:
+					FBLOG_DEBUG("webapp", "succeed");
+					break;
+				case FormatFail:
+					api->fire_error("'" + evt->stream->getUrl() + "' is not a valid web application");
+					break;
+				case VerifyFail:
+					api->fire_error("'" + evt->stream->getUrl() + "' verify fail");
+					break;
+				case NotSupport:
+					api->fire_error("'" + evt->stream->getUrl() + "' is not support your platform");
+					break;
+				case RuntimeError:
+					api->fire_error("'" + evt->stream->getUrl() + "' failed during startup/running");
+					break;
+				default:
+					api->fire_error("'" + evt->stream->getUrl() + "' get a unknown error");
+				}
+			} while (false);
 		}
 		else
 		{
@@ -286,18 +305,21 @@ void WebApp::onStart(const std::string &url, const std::string &md5, const std::
 		throw FB::script_error("Could not start again before close");
 
 	started = true;
+	// 获取dll所在目录
 	std::string rootpath;
 	{
 		int pos = g_dllPath.find_last_of("\\");
 		rootpath = g_dllPath.substr(0, pos + 1);
 	}
 	SetCurrentDirectoryW(FB::utf8_to_wstring(rootpath).c_str());
+	// 创建必须的文件夹
 	if (!PathFileExistsA("webapp"))
 		CreateDirectoryA("webapp", NULL);
 	if (!PathFileExistsA("cache"))
 		CreateDirectoryA("cache", NULL);
 	FBLOG_DEBUG("webapp", "start");
 
+	// 获取文件name，如果md5有值，则为md5所代表的值，否则为url的"域名-最后的文件名"形式
 	std::string name;
 	if (md5.empty())
 	{
@@ -320,8 +342,9 @@ void WebApp::onStart(const std::string &url, const std::string &md5, const std::
 		name = md5;
 	}
 	if (name.empty())
-		throw FB::script_error("Params invaild");
+		throw FB::script_error("Bad argument #1");
 
+	// 读取本地缓存文件
 	std::string path = rootpath + name;
 	FILE *file;
 	{
@@ -336,18 +359,49 @@ void WebApp::onStart(const std::string &url, const std::string &md5, const std::
 		boost::shared_array<unsigned char> data(new unsigned char[len]);
 		len = fread(data.get(), 1, len, file);
 		fclose(file);
-		if (execute(data, len, args) == Succeed)
+		// 本地缓存文件不需要再进行校验
+		if (execute(data, len, true, args) == Succeed)
 			return;
 	}
 	filename = name;
-	execargs = args;
+	filemd5.clear();
+	if (!md5.empty())
+	{
+		// md5字符串转换成字节流
+		std::vector<unsigned char> summd5;
+		summd5.resize(16);
+		size_t index = 0;
+		while (md5[index] == ' ' || md5[index] == '\t')
+			++index;
+		if (md5.length() < index + 32)
+			throw FB::script_error("Bad argument #2");
+		for (int i = 0; i < 16; ++i)
+		{
+			unsigned char sum = 0;
+			for (int j = 0; j < 2; ++j)
+			{
+				unsigned char c = md5[i * 2 + j + index];
+				if (c >= '0' && c <= '9')
+					sum = sum * 16 + c - '0';
+				else if (c >= 'a' && c <= 'f')
+					sum = sum * 16 + c - 'a' + 10;
+				else if (c >= 'A' && c <= 'F')
+					sum = sum * 16 + c - 'A' + 10;
+				else
+					throw FB::script_error("Bad argument #2");
+			}
+			summd5[i] = sum;
+		}
+		filemd5.swap(summd5);
+	}
+	this->args = args;
 	buffused = 0;
 	getHost()->createStream(url, shared_from_this(), false);
 }
 
 bool WebApp::onMessage(const std::string &msg, std::string &result)
 {
-	if (message == NULL)
+	if (module == NULL || message == NULL)
 		return false;
 	const char *ret = message(msg.c_str());
 	result = ret == NULL ? "" : ret;
@@ -472,7 +526,7 @@ namespace
 	};
 }
 
-int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, const std::string &args)
+int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, bool old, const std::string &args)
 {
 	FBLOG_DEBUG("webapp", "execute");
 	MemZip zip;
@@ -493,6 +547,7 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, const 
 	unzFile file = unzOpen2("", &fn);
 	if (unzOpen2 == NULL)
 		return FormatFail;
+	// 遍历ZIP文件
 	unz_global_info global_info;
 	if (UNZ_OK == unzGetGlobalInfo(file, &global_info))
 	{
@@ -524,6 +579,7 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, const 
 	std::map<unsigned int, FileData>::iterator i;
 	do
 	{
+		// 首先解压manifest.json(webapp包固定需要有此文件)
 		i = filedatas.find(FNV("manifest.json"));
 		if (i == filedatas.end())
 		{
@@ -536,6 +592,7 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, const 
 		unzReadCurrentFile(file, jsonbuf.get(), i->second.uncompressed);
 		jsonbuf[i->second.uncompressed] = 0;
 		rapidjson::Document doc;
+		// 解析JSON，mark字段表示该webapp包的属性，也用于作为root文件夹；win32/win64表示对应各自平台的运行时库
 		doc.ParseInsitu(jsonbuf.get());
 		if (doc.HasParseError())
 		{
@@ -559,6 +616,7 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, const 
 			result = NotSupport;
 			break;
 		}
+		// 解压运行时库指示的文件
 		std::string name(value.GetString(), value.GetStringLength());
 		i = filedatas.find(FNV(name.c_str()));
 		if (i == filedatas.end())
@@ -571,6 +629,7 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, const 
 		size_t len = i->second.uncompressed;
 		boost::shared_array<unsigned char> buffer(new unsigned char[len]);
 		unzReadCurrentFile(file, buffer.get(), len);
+		// 保存到随机名字(以解决重复加载同一dll，全局/静态变量共用造成的冲突)
 		std::string uuidname = "cache\\" + uuid() + ".dll";
 		FILE *dllfile = fopen(uuidname.c_str(), "wb");
 		if (dllfile == NULL)
@@ -585,6 +644,11 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, const 
 			result = RuntimeError;
 			break;
 		}
+		if (!old)
+		{
+			// 不是老数据，那么需要校验
+		}
+		// 载入DLL
 		module = LoadLibraryA(uuidname.c_str());
 		if (module != NULL)
 		{
@@ -593,10 +657,17 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, const 
 			close = (CloseFunc)GetProcAddress(module, "Close");
 			resize = (ResizeFunc)GetProcAddress(module, "Resize");
 			message = (MessageFunc)GetProcAddress(module, "Message");
+			if (start == NULL)
+			{
+				result = FormatFail;
+				break;
+			}
+			// 切换到webapp的root文件夹
 			mark = "cache\\" + mark;
 			if (!PathFileExistsA(mark.c_str()))
 				CreateDirectoryA(mark.c_str(), NULL);
 			SetCurrentDirectoryA(mark.c_str());
+			// 开始执行
 			FB::PluginWindowWin *winwindow = dynamic_cast<FB::PluginWindowWin *>(window);
 			start(winwindow == NULL ? NULL : (void *)winwindow->getHWND(), &si, args.c_str());
 		}
