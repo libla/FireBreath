@@ -1,0 +1,96 @@
+<!--
+    Auto-generated test-site
+-->
+<html>
+<head>
+<title>test page for object fbcontrol</title>
+</head>
+    <script type="text/javascript">
+    	var version = "1.0.0.0";
+    	var isIE = navigator.userAgent.toLowerCase().match(/msie/) != null || navigator.userAgent.toLowerCase().match(/trident/) != null;
+    	var domstring =
+    		'<object id="webapp" ' + 'type="application/x-webapp-player" ' + 'width="100%" height="100%"' + '>' +
+    			'<param name="onload" value="pluginLoaded" />' +
+    		'</object>';
+
+    	function pluginTest()
+    	{
+    		if (!isIE)
+    		{
+    			window.navigator.plugins.refresh(false);
+    			if (navigator.plugins["WebApp"] !== undefined)
+    				return true;
+    			for (var mimeType in window.navigator.mimeTypes)
+    			{
+    				if (mimeType.type == 'application/x-webapp-player')
+    					return true;
+    			}
+    			return false;
+    		}
+    		else
+    		{
+    			try
+    			{
+    				new ActiveXObject('MiniGame.WebApp');
+    				return true;
+    			}
+    			catch (e)
+    			{
+    				return false;
+    			}
+    		}
+    	}
+
+		var webapp;
+
+		function pluginStart(obj)
+		{
+			obj = obj || document.body;
+			obj.innerHTML = domstring + obj.innerHTML;
+			webapp = document.getElementById("webapp");
+			if (webapp == null)
+			{
+				alert("webapp is" + webapp);
+			}
+		}
+
+		function pluginLoaded()
+        {
+        	if (webapp)
+        	{
+        		alert(webapp.version);
+        		pluginEvent(webapp, 'notify', function(type, content)
+	            {
+	                alert(type + " " + content);
+	            });
+        		webapp.start("http://127.0.0.1:8888/test.app", "", JSON.stringify({
+	            	"name" : "libla",
+	            	"password" : "123456",
+	            }));
+        	}
+        }
+
+        function pluginEvent(obj, name, func)
+        {
+            if (obj.attachEvent)
+            	obj.attachEvent("on" + name, func);
+            else
+            	obj.addEventListener(name, func, false);
+        }
+
+        function test()
+        {
+        	if (pluginTest())
+        	{
+        		pluginStart();
+        	}
+        	else
+        	{
+        		alert("no plugin");
+        	}
+        }
+    </script>
+<body>
+<a href="#" onclick="javascript:test()">test</a> <br />
+</body>
+</html>
