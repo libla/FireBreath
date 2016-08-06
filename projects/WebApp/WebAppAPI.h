@@ -42,10 +42,13 @@ public:
     WebAppPtr getPlugin();
     
     // Event helpers
-    FB_JSAPI_EVENT(notify, 3, (const int, const std::string &, const std::string &));
+    FB_JSAPI_EVENT(notify, 2, (const std::string &, const FB::variant &));
+	FB_JSAPI_EVENT(close, 1, (const int));
+	FB_JSAPI_EVENT(error, 1, (const std::string &));
 
 private:
 	void start(const FB::variant &url, const FB::variant &md5, const FB::variant &args);
+	FB::variant message(const std::string &msg);
 	// Read-only property ${PROPERTY.ident}
 	std::string get_version();
 

@@ -16,6 +16,8 @@ WebAppAPI::WebAppAPI(const WebAppPtr& plugin, const FB::BrowserHostPtr& host) :
 {
 	registerMethod("start",
 		make_method(this, &WebAppAPI::start));
+	registerMethod("message",
+		make_method(this, &WebAppAPI::message));
 	// Read-only property
 	registerProperty("version",
 		make_property(this, &WebAppAPI::get_version));
@@ -58,6 +60,15 @@ void WebAppAPI::start(const FB::variant &url, const FB::variant &md5, const FB::
 		argstr = args.cast<std::string>();
 	}
 	getPlugin()->onStart(urlstr, md5str, argstr);
+}
+
+FB::variant WebAppAPI::message(const std::string &msg)
+{
+	FB::variant value;
+	std::string result;
+	if (getPlugin()->onMessage(msg, result))
+		value = result;
+	return value;
 }
 
 // Read-only property version
