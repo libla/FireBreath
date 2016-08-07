@@ -247,7 +247,7 @@ bool WebApp::onStreamEvent(FB::StreamEvent *evt, FB::BrowserStream *)
 						api->fire_error("Fail to write to file '" + path + "'");
 						break;
 					}
-					rename(path.c_str(), ("webapp\\" + filename).c_str());
+					rename(path.c_str(), ("app\\" + filename).c_str());
 				} while (false);
 			}
 
@@ -316,8 +316,8 @@ void WebApp::onStart(const std::string &url, const std::string &md5, const std::
 	}
 	SetCurrentDirectoryW(FB::utf8_to_wstring(rootpath).c_str());
 	// 创建必须的文件夹
-	if (!PathFileExistsA("webapp"))
-		CreateDirectoryA("webapp", NULL);
+	if (!PathFileExistsA("app"))
+		CreateDirectoryA("app", NULL);
 	if (!PathFileExistsA("cache"))
 		CreateDirectoryA("cache", NULL);
 	FBLOG_DEBUG("webapp", "start");
@@ -348,9 +348,9 @@ void WebApp::onStart(const std::string &url, const std::string &md5, const std::
 		throw FB::script_error("Bad argument #1");
 
 	// 读取本地缓存文件
-	std::string path = rootpath + name;
 	FILE *file;
 	{
+		std::string path = rootpath + "app\\" + name;
 		std::wstring pathw = FB::utf8_to_wstring(path);
 		file = _wfopen(pathw.c_str(), L"rb");
 	}
@@ -666,7 +666,7 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, bool o
 				break;
 			}
 			// 切换到webapp的root文件夹
-			mark = "cache\\" + mark;
+			mark = "app\\" + mark;
 			if (!PathFileExistsA(mark.c_str()))
 				CreateDirectoryA(mark.c_str(), NULL);
 			SetCurrentDirectoryA(mark.c_str());
