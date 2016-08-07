@@ -15,7 +15,7 @@
 #include <BrowserStreamRequest.h>
 #include <PluginWindowWin.h>
 #include <unzip.h>
-#include <md5.h>
+#include <openssl/md5.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 
@@ -257,7 +257,10 @@ bool WebApp::onStreamEvent(FB::StreamEvent *evt, FB::BrowserStream *)
 				if (!filemd5.empty())
 				{
 					unsigned char verify[16];
-					Md5Calc(verify, (char *)buffer, buffused);
+					MD5_CTX c;
+					MD5_Init(&c);
+					MD5_Update(&c, buffer, buffused);
+					MD5_Final(verify, &c);
 					if (memcmp(verify, &(filemd5[0]), 16) != 0)
 					{
 						api->fire_error("'" + evt->stream->getUrl() + "' md5sum fail");

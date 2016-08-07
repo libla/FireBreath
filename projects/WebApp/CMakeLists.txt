@@ -26,6 +26,7 @@ file (GLOB_RECURSE MODULES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
 
 include_directories(${PLUGIN_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/modules/include)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/modules/lib)
 
 # Generated files are stored in ${GENERATED} by the project configuration
 SET_SOURCE_FILES_PROPERTIES(

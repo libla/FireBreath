@@ -76,6 +76,7 @@ set(FBMAC_USE_INVALIDATINGCOREANIMATION 0)
 #set (FB_ATLREG_MACHINEWIDE 1)
 
 add_firebreath_library(log4cplus)
-add_firebreath_library(openssl)
 add_firebreath_library(curl)
 add_firebreath_library(jsoncpp)
+append_firebreath_link_library(libeay32)
+append_firebreath_link_library(ssleay32)
