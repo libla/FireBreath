@@ -8,6 +8,7 @@
 \**********************************************************/
 
 #include "FactoryBase.h"
+#include "FBControl.h"
 #include "WebApp.h"
 #include <boost/make_shared.hpp>
 
@@ -44,6 +45,12 @@ public:
 	void getLoggingMethods(FB::Log::LogMethodList& outMethods)
 	{
 #ifndef NDEBUG
+		int pos = g_dllPath.find_last_of("\\");
+		std::string rootpath = g_dllPath.substr(0, pos + 1);
+		SetCurrentDirectoryW(FB::utf8_to_wstring(rootpath).c_str());
+		if (!PathFileExistsA("log"))
+			CreateDirectoryA("log", NULL);
+		outMethods.push_back(std::make_pair(FB::Log::LogMethod_File, std::string("log/common.log")));
 		outMethods.push_back(std::make_pair(FB::Log::LogMethod_Console, std::string()));
 #endif
 	}

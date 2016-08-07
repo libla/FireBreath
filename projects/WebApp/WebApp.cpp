@@ -351,8 +351,7 @@ void WebApp::onStart(const std::string &url, const std::string &md5, const std::
 	FILE *file;
 	{
 		std::string path = rootpath + "app\\" + name;
-		std::wstring pathw = FB::utf8_to_wstring(path);
-		file = _wfopen(pathw.c_str(), L"rb");
+		file = _wfopen(FB::utf8_to_wstring(path).c_str(), L"rb");
 	}
 	if (file != NULL)
 	{
