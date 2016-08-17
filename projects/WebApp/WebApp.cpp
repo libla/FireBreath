@@ -609,10 +609,17 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, bool o
 			break;
 		}
 		std::string mark(value.GetString(), value.GetStringLength());
+		rapidjson::Value platform;
 		if (sizeof(int *) == 4)
-			value = doc["win32"];
+			platform = doc["win32"];
 		else
-			value = doc["win64"];
+			platform = doc["win64"];
+		if (!platform.IsObject())
+		{
+			result = NotSupport;
+			break;
+		}
+		value = platform["name"];
 		if (!value.IsString())
 		{
 			result = NotSupport;
@@ -649,6 +656,12 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, bool o
 		if (!old)
 		{
 			// 不是老数据，那么需要校验
+			value = platform["sign"];
+			if (!value.IsString())
+			{
+				result = NotSupport;
+				break;
+			}
 		}
 		// 载入DLL
 		module = LoadLibraryA(uuidname.c_str());
