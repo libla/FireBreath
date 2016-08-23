@@ -544,7 +544,7 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t l, bool old
 	};
 	std::map<unsigned int, FileData> filedatas;
 	unzFile file = unzOpen2("", &fn);
-	if (unzOpen2 == NULL)
+	if (file == NULL)
 		return FormatFail;
 	// 遍历ZIP文件
 	unz_global_info global_info;
