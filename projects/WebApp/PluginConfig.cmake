@@ -77,6 +77,4 @@ set(FBMAC_USE_INVALIDATINGCOREANIMATION 0)
 
 add_firebreath_library(log4cplus)
 add_firebreath_library(curl)
-add_firebreath_library(jsoncpp)
-append_firebreath_link_library(libeay32)
-append_firebreath_link_library(ssleay32)
+add_firebreath_library(mbedcrypto)
