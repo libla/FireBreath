@@ -33,7 +33,7 @@
 // Regular implementation
 //
 
-#include "cstdint.h"
+#include "stdint.h"
 
 #ifdef __cplusplus
 extern "C" {

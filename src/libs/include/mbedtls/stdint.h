@@ -1,195 +1,239 @@
-//
-// nextcodec@fastreaming.com
-// renamed from stdint.h to inttypes.h
-// long long <---->__int64
+﻿#ifndef _STDINT_H_ALL_
+#define _STDINT_H_ALL_
 
-#ifndef _STDINT_H
-#define _STDINT_H
-#define __need_wint_t
-#define __need_wchar_t
-#include <stddef.h>
-
-/* 7.18.1.1  Exact-width integer types */
-typedef signed char int8_t;
-typedef unsigned char   uint8_t;
-typedef short  int16_t;
-typedef unsigned short  uint16_t;
-typedef int  int32_t;
-typedef unsigned   uint32_t;
-
-#ifdef __GNUC__
-typedef long long  int64_t;
-typedef unsigned long long   uint64_t;
+// _STDINT_H_SYS_: 编译器是否提供了<stdint.h>
+#undef _STDINT_H_SYS_
+#if defined(__GNUC__)    // GCC.
+    #define _STDINT_H_SYS_
+#elif defined(_MSC_VER)    // MSVC. VC6至VC2005均没有, 似乎从VC2010才支持的.
+    #if _MSC_VER >=1600    // VC2010
+        #define _STDINT_H_SYS_
+    #endif    // #if _MSC_VER >=1600    // VC2010
+#elif defined(__BORLANDC__)    // BCB. BCB6是支持的.
+    #if __BORLANDC__ >=0x0560    // BCB6
+        #define _STDINT_H_SYS_
+    #endif    // #if __BORLANDC__ >=0x0560    // BCB6
 #else
-typedef __int64  int64_t;
-typedef unsigned __int64   uint64_t;
-#endif
+    #define _INTTYPES_H_SYS_    // 假设其他编译器支持C99.
+#endif    // _STDINT_H_SYS_
 
-/* 7.18.1.2  Minimum-width integer types */
-typedef signed char int_least8_t;
-typedef unsigned char   uint_least8_t;
-typedef short  int_least16_t;
-typedef unsigned short  uint_least16_t;
-typedef int  int_least32_t;
-typedef unsigned   uint_least32_t;
 
-#ifdef __GNUC__
-typedef long long  int_least64_t;
-typedef unsigned long long   uint_least64_t;
+#ifdef _STDINT_H_SYS_
+// 使用编译器提供的<stdint.h>
+#include <stdint.h>
 #else
-typedef __int64  int_least64_t;
-typedef unsigned __int64   uint_least64_t;
+// 采用自定义的stdint.h. 参考了 msinttypes: http://code.google.com/p/msinttypes/
+#ifndef _MSC_STDINT_H_ // [
+#define _MSC_STDINT_H_
+
+#include <limits.h>
+
+// For Visual Studio 6 in C++ mode and for many Visual Studio versions when
+// compiling for ARM we should wrap <wchar.h> include with 'extern "C++" {}'
+// or compiler give many errors like this:
+//   error C2733: second C linkage of overloaded function 'wmemchr' not allowed
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
+//#  include <wchar.h>
+//#ifdef __cplusplus
+//}
+//#endif
+// 在VC6下测试时, 发现上面的方法会报告很多C2733错误. 还是直接include算了.
+#include <wchar.h>
+
+// Define _W64 macros to mark types changing their size, like intptr_t.
+#ifndef _W64
+#  if !defined(__midl) && (defined(_X86_) || defined(_M_IX86)) && _MSC_VER >= 1300
+#     define _W64 __w64
+#  else
+#     define _W64
+#  endif
 #endif
 
-/*  7.18.1.3  Fastest minimum-width integer types 
- *  Not actually guaranteed to be fastest for all purposes
- *  Here we use the exact-width types for 8 and 16-bit ints. 
- */
-typedef char int_fast8_t;
-typedef unsigned char uint_fast8_t;
-typedef short  int_fast16_t;
-typedef unsigned short  uint_fast16_t;
-typedef int  int_fast32_t;
-typedef unsigned  int  uint_fast32_t;
 
-#ifdef __GNUC__
-typedef long long  int_fast64_t;
-typedef unsigned long long   uint_fast64_t;
+// 7.18.1 Integer types
+
+// 7.18.1.1 Exact-width integer types
+
+// Visual Studio 6 and Embedded Visual C++ 4 doesn't
+// realize that, e.g. char has the same size as __int8
+// so we give up on __intX for them.
+#if (_MSC_VER < 1300)
+   typedef signed char       int8_t;
+   typedef signed short      int16_t;
+   typedef signed int        int32_t;
+   typedef unsigned char     uint8_t;
+   typedef unsigned short    uint16_t;
+   typedef unsigned int      uint32_t;
 #else
-typedef __int64  int_fast64_t;
-typedef unsigned __int64   uint_fast64_t;
+   typedef signed __int8     int8_t;
+   typedef signed __int16    int16_t;
+   typedef signed __int32    int32_t;
+   typedef unsigned __int8   uint8_t;
+   typedef unsigned __int16  uint16_t;
+   typedef unsigned __int32  uint32_t;
 #endif
+typedef signed __int64       int64_t;
+typedef unsigned __int64     uint64_t;
 
-/* 7.18.1.4  Integer types capable of holding object pointers */
-typedef int intptr_t;
-typedef unsigned uintptr_t;
 
-/* 7.18.1.5  Greatest-width integer types */
-#ifdef __GNUC__
-typedef long long  intmax_t;
-typedef unsigned long long   uintmax_t;
-#else
-typedef __int64  intmax_t;
-typedef unsigned __int64   uintmax_t;
-#endif
+// 7.18.1.2 Minimum-width integer types
+typedef int8_t    int_least8_t;
+typedef int16_t   int_least16_t;
+typedef int32_t   int_least32_t;
+typedef int64_t   int_least64_t;
+typedef uint8_t   uint_least8_t;
+typedef uint16_t  uint_least16_t;
+typedef uint32_t  uint_least32_t;
+typedef uint64_t  uint_least64_t;
 
-/* 7.18.2  Limits of specified-width integer types */
-#if !defined ( __cplusplus) || defined (__STDC_LIMIT_MACROS)
+// 7.18.1.3 Fastest minimum-width integer types
+typedef int8_t    int_fast8_t;
+typedef int16_t   int_fast16_t;
+typedef int32_t   int_fast32_t;
+typedef int64_t   int_fast64_t;
+typedef uint8_t   uint_fast8_t;
+typedef uint16_t  uint_fast16_t;
+typedef uint32_t  uint_fast32_t;
+typedef uint64_t  uint_fast64_t;
 
-/* 7.18.2.1  Limits of exact-width integer types */
-#define INT8_MIN (-128) 
-#define INT16_MIN (-32768)
-#define INT32_MIN (-2147483647 - 1)
-#define INT64_MIN  (-9223372036854775807LL - 1)
+// 7.18.1.4 Integer types capable of holding object pointers
+#ifdef _WIN64 // [
+   typedef signed __int64    intptr_t;
+   typedef unsigned __int64  uintptr_t;
+#else // _WIN64 ][
+   typedef _W64 signed int   intptr_t;
+   typedef _W64 unsigned int uintptr_t;
+#endif // _WIN64 ]
 
-#define INT8_MAX 127
-#define INT16_MAX 32767
-#define INT32_MAX 2147483647
-#define INT64_MAX 9223372036854775807LL
+// 7.18.1.5 Greatest-width integer types
+typedef int64_t   intmax_t;
+typedef uint64_t  uintmax_t;
 
-#define UINT8_MAX 0xff /* 255U */
-#define UINT16_MAX 0xffff /* 65535U */
-#define UINT32_MAX 0xffffffff  /* 4294967295U */
-#define UINT64_MAX 0xffffffffffffffffULL /* 18446744073709551615ULL */
 
-/* 7.18.2.2  Limits of minimum-width integer types */
-#define INT_LEAST8_MIN INT8_MIN
-#define INT_LEAST16_MIN INT16_MIN
-#define INT_LEAST32_MIN INT32_MIN
-#define INT_LEAST64_MIN INT64_MIN
+// 7.18.2 Limits of specified-width integer types
 
-#define INT_LEAST8_MAX INT8_MAX
-#define INT_LEAST16_MAX INT16_MAX
-#define INT_LEAST32_MAX INT32_MAX
-#define INT_LEAST64_MAX INT64_MAX
+#if !defined(__cplusplus) || defined(__STDC_LIMIT_MACROS) // [   See footnote 220 at page 257 and footnote 221 at page 259
 
-#define UINT_LEAST8_MAX UINT8_MAX
-#define UINT_LEAST16_MAX UINT16_MAX
-#define UINT_LEAST32_MAX UINT32_MAX
-#define UINT_LEAST64_MAX UINT64_MAX
+// 7.18.2.1 Limits of exact-width integer types
+#define INT8_MIN     ((int8_t)_I8_MIN)
+#define INT8_MAX     _I8_MAX
+#define INT16_MIN    ((int16_t)_I16_MIN)
+#define INT16_MAX    _I16_MAX
+#define INT32_MIN    ((int32_t)_I32_MIN)
+#define INT32_MAX    _I32_MAX
+#define INT64_MIN    ((int64_t)_I64_MIN)
+#define INT64_MAX    _I64_MAX
+#define UINT8_MAX    _UI8_MAX
+#define UINT16_MAX   _UI16_MAX
+#define UINT32_MAX   _UI32_MAX
+#define UINT64_MAX   _UI64_MAX
 
-/* 7.18.2.3  Limits of fastest minimum-width integer types */
-#define INT_FAST8_MIN INT8_MIN
-#define INT_FAST16_MIN INT16_MIN
-#define INT_FAST32_MIN INT32_MIN
-#define INT_FAST64_MIN INT64_MIN
+// 7.18.2.2 Limits of minimum-width integer types
+#define INT_LEAST8_MIN    INT8_MIN
+#define INT_LEAST8_MAX    INT8_MAX
+#define INT_LEAST16_MIN   INT16_MIN
+#define INT_LEAST16_MAX   INT16_MAX
+#define INT_LEAST32_MIN   INT32_MIN
+#define INT_LEAST32_MAX   INT32_MAX
+#define INT_LEAST64_MIN   INT64_MIN
+#define INT_LEAST64_MAX   INT64_MAX
+#define UINT_LEAST8_MAX   UINT8_MAX
+#define UINT_LEAST16_MAX  UINT16_MAX
+#define UINT_LEAST32_MAX  UINT32_MAX
+#define UINT_LEAST64_MAX  UINT64_MAX
 
-#define INT_FAST8_MAX INT8_MAX
-#define INT_FAST16_MAX INT16_MAX
-#define INT_FAST32_MAX INT32_MAX
-#define INT_FAST64_MAX INT64_MAX
+// 7.18.2.3 Limits of fastest minimum-width integer types
+#define INT_FAST8_MIN    INT8_MIN
+#define INT_FAST8_MAX    INT8_MAX
+#define INT_FAST16_MIN   INT16_MIN
+#define INT_FAST16_MAX   INT16_MAX
+#define INT_FAST32_MIN   INT32_MIN
+#define INT_FAST32_MAX   INT32_MAX
+#define INT_FAST64_MIN   INT64_MIN
+#define INT_FAST64_MAX   INT64_MAX
+#define UINT_FAST8_MAX   UINT8_MAX
+#define UINT_FAST16_MAX  UINT16_MAX
+#define UINT_FAST32_MAX  UINT32_MAX
+#define UINT_FAST64_MAX  UINT64_MAX
 
-#define UINT_FAST8_MAX UINT8_MAX
-#define UINT_FAST16_MAX UINT16_MAX
-#define UINT_FAST32_MAX UINT32_MAX
-#define UINT_FAST64_MAX UINT64_MAX
+// 7.18.2.4 Limits of integer types capable of holding object pointers
+#ifdef _WIN64 // [
+#  define INTPTR_MIN   INT64_MIN
+#  define INTPTR_MAX   INT64_MAX
+#  define UINTPTR_MAX  UINT64_MAX
+#else // _WIN64 ][
+#  define INTPTR_MIN   INT32_MIN
+#  define INTPTR_MAX   INT32_MAX
+#  define UINTPTR_MAX  UINT32_MAX
+#endif // _WIN64 ]
 
-/* 7.18.2.4  Limits of integer types capable of holding
-    object pointers */ 
-#define INTPTR_MIN INT32_MIN
-#define INTPTR_MAX INT32_MAX
-#define UINTPTR_MAX UINT32_MAX
+// 7.18.2.5 Limits of greatest-width integer types
+#define INTMAX_MIN   INT64_MIN
+#define INTMAX_MAX   INT64_MAX
+#define UINTMAX_MAX  UINT64_MAX
 
-/* 7.18.2.5  Limits of greatest-width integer types */
-#define INTMAX_MIN INT64_MIN
-#define INTMAX_MAX INT64_MAX
-#define UINTMAX_MAX UINT64_MAX
+// 7.18.3 Limits of other integer types
 
-/* 7.18.3  Limits of other integer types */
-#define PTRDIFF_MIN INT32_MIN
-#define PTRDIFF_MAX INT32_MAX
+#ifdef _WIN64 // [
+#  define PTRDIFF_MIN  _I64_MIN
+#  define PTRDIFF_MAX  _I64_MAX
+#else  // _WIN64 ][
+#  define PTRDIFF_MIN  _I32_MIN
+#  define PTRDIFF_MAX  _I32_MAX
+#endif  // _WIN64 ]
 
-#define SIG_ATOMIC_MIN INT32_MIN
-#define SIG_ATOMIC_MAX INT32_MAX
+#define SIG_ATOMIC_MIN  INT_MIN
+#define SIG_ATOMIC_MAX  INT_MAX
 
-#define SIZE_MAX UINT32_MAX
+#ifndef SIZE_MAX // [
+#  ifdef _WIN64 // [
+#     define SIZE_MAX  _UI64_MAX
+#  else // _WIN64 ][
+#     define SIZE_MAX  _UI32_MAX
+#  endif // _WIN64 ]
+#endif // SIZE_MAX ]
 
-#ifndef WCHAR_MIN  /* also in wchar.h */ 
-#define WCHAR_MIN 0
-#define WCHAR_MAX 0xffff /* UINT16_MAX */
-#endif
+// WCHAR_MIN and WCHAR_MAX are also defined in <wchar.h>
+#ifndef WCHAR_MIN // [
+#  define WCHAR_MIN  0
+#endif  // WCHAR_MIN ]
+#ifndef WCHAR_MAX // [
+#  define WCHAR_MAX  _UI16_MAX
+#endif  // WCHAR_MAX ]
 
-/*
- * wint_t is unsigned short for compatibility with MS runtime
- */
-#define WINT_MIN 0
-#define WINT_MAX 0xffff /* UINT16_MAX */
+#define WINT_MIN  0
+#define WINT_MAX  _UI16_MAX
 
-#endif /* !defined ( __cplusplus) || defined __STDC_LIMIT_MACROS */
+#endif // __STDC_LIMIT_MACROS ]
 
-#if 0
-/* 7.18.4  Macros for integer constants */
-#if !defined ( __cplusplus) || defined (__STDC_CONSTANT_MACROS)
 
-/* 7.18.4.1  Macros for minimum-width integer constants
+// 7.18.4 Limits of other integer types
 
-    Accoding to Douglas Gwyn <gwyn@arl.mil>:
-	"This spec was changed in ISO/IEC 9899:1999 TC1; in ISO/IEC
-	9899:1999 as initially published, the expansion was required
-	to be an integer constant of precisely matching type, which
-	is impossible to accomplish for the shorter types on most
-	platforms, because C99 provides no standard way to designate
-	an integer constant with width less than that of type int.
-	TC1 changed this to require just an integer constant
-	*expression* with *promoted* type."
-*/
+#if !defined(__cplusplus) || defined(__STDC_CONSTANT_MACROS) // [   See footnote 224 at page 260
 
-#define INT8_C(val) ((int8_t) + (val))
-#define UINT8_C(val) ((uint8_t) + (val##U))
-#define INT16_C(val) ((int16_t) + (val))
-#define UINT16_C(val) ((uint16_t) + (val##U))
+// 7.18.4.1 Macros for minimum-width integer constants
 
-#define INT32_C(val) val##L
-#define UINT32_C(val) val##UL
-#define INT64_C(val) val##LL
-#define UINT64_C(val) val##ULL
+#define INT8_C(val)  val##i8
+#define INT16_C(val) val##i16
+#define INT32_C(val) val##i32
+#define INT64_C(val) val##i64
 
-/* 7.18.4.2  Macros for greatest-width integer constants */
-#define INTMAX_C(val)  INT64_C(val)
-#define UINTMAX_C(val) UINT64_C(val)
+#define UINT8_C(val)  val##ui8
+#define UINT16_C(val) val##ui16
+#define UINT32_C(val) val##ui32
+#define UINT64_C(val) val##ui64
 
-#endif  /* !defined ( __cplusplus) || defined __STDC_CONSTANT_MACROS */
+// 7.18.4.2 Macros for greatest-width integer constants
+#define INTMAX_C   INT64_C
+#define UINTMAX_C  UINT64_C
 
-#endif//#if 0
+#endif // __STDC_CONSTANT_MACROS ]
 
-#endif
+
+#endif // _MSC_STDINT_H_ ]
+
+#endif // #ifdef _STDINT_H_SYS_
+
+#endif // #ifndef _STDINT_H_ALL_

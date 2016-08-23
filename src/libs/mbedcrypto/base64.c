@@ -29,7 +29,7 @@
 
 #include "mbedtls/base64.h"
 
-#include "mbedtls/cstdint.h"
+#include "mbedtls/stdint.h"
 
 #if defined(MBEDTLS_SELF_TEST)
 #include <string.h>

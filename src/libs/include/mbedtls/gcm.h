@@ -25,7 +25,7 @@
 
 #include "cipher.h"
 
-#include "cstdint.h"
+#include "stdint.h"
 
 #define MBEDTLS_GCM_ENCRYPT     1
 #define MBEDTLS_GCM_DECRYPT     0

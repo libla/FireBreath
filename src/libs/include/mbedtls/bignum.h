@@ -30,7 +30,7 @@
 #endif
 
 #include <stddef.h>
-#include "cstdint.h"
+#include "stdint.h"
 
 #if defined(MBEDTLS_FS_IO)
 #include <stdio.h>
