@@ -525,12 +525,12 @@ namespace
 	};
 }
 
-int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, bool old, const std::string &args)
+int WebApp::execute(boost::shared_array<unsigned char> &data, size_t l, bool old, const std::string &args)
 {
 	FBLOG_DEBUG("webapp", "execute");
 	MemZip zip;
 	zip.data = data;
-	zip.length = len;
+	zip.length = l;
 	zip.offset = 0;
 	zlib_filefunc_def fn = {
 		zopen_file,
@@ -681,7 +681,7 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, bool o
 			SetCurrentDirectoryA(mark.c_str());
 			// 开始执行
 			FB::PluginWindowWin *winwindow = dynamic_cast<FB::PluginWindowWin *>(window);
-			if (start(winwindow == NULL ? NULL : (void *)winwindow->getHWND(), &si, args.c_str()) != 0)
+			if (start(data.get(), (int)l, winwindow == NULL ? NULL : (void *)winwindow->getHWND(), &si, args.c_str()) != 0)
 			{
 				result = RuntimeError;
 				break;
