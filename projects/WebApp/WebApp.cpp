@@ -681,7 +681,11 @@ int WebApp::execute(boost::shared_array<unsigned char> &data, size_t len, bool o
 			SetCurrentDirectoryA(mark.c_str());
 			// 开始执行
 			FB::PluginWindowWin *winwindow = dynamic_cast<FB::PluginWindowWin *>(window);
-			start(winwindow == NULL ? NULL : (void *)winwindow->getHWND(), &si, args.c_str());
+			if (start(winwindow == NULL ? NULL : (void *)winwindow->getHWND(), &si, args.c_str()) != 0)
+			{
+				result = RuntimeError;
+				break;
+			}
 		}
 		result = Succeed;
 	} while (false);
